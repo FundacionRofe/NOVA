@@ -1,0 +1,17 @@
+{
+  "name": "nova-tablero",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tablero en tiempo real de la encuesta NOVA a empresas (Fundación ROFÉ)",
+  "scripts": {
+    "dev": "next dev -p 4321",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "gsap": "3.13.0",
+    "next": "15.5.4",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  }
+}
