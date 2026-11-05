@@ -16,9 +16,9 @@ Google Form → Sheet de respuestas ──(Service Account, solo lectura)──�
 ```
 
 - **Ningún dato individual llega al navegador**: ni nombres de empresa, ni correos, ni texto libre.
-- **Regla n<5 (ADR-0003 de la Fundación):** una opción con 1–4 respuestas se agrupa en «Otras»
-  o se muestra como «menos de 5», y se bloquean las restas que permitirían deducirla
-  (por eso el perfil cuenta solo Colombia y Ecuador).
+- **Grupos pequeños (ADR-0021 de la Fundación):** evaluado para NOVA → se muestran cifras exactas
+  (se cuentan empresas, sin nombres). Con `NOVA_N_MIN=5` vuelve la supresión n<5: grupos de 1–4 se
+  agrupan en «Otras agrupadas» o salen como «menos de 5» y se bloquean las restas que los deducen.
 - `data/base_ccb.json` no contiene nombres: cada empresa de la base va como un HMAC de su
   nombre con la clave secreta `NOVA_HASH_KEY` (que no está en el repo), más su tamaño y sector
   oficiales. Sin la clave no se puede comprobar si una empresa está en la base.

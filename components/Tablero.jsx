@@ -10,6 +10,7 @@ const useIsoLayout = typeof window !== "undefined" ? useLayoutEffect : useEffect
 
 const fmt = (n) => Number(n).toLocaleString("es-CO");
 const pct = (a, b) => (b ? Math.round((a / b) * 1000) / 10 : 0);
+let N_MIN = 5; // se actualiza con d.nMin al llegar los datos
 const LEMA = "New skills, new opportunities: women in Latin America";
 
 // ---------- Tooltip compartido ----------
@@ -47,7 +48,7 @@ function Pais({ p }) {
       <h3>{p.pais}</h3>
       <p className="sub">Meta: {p.meta} empresas</p>
       {supr ? (
-        <div className="pais-n texto display">menos de 5</div>
+        <div className="pais-n texto display">menos de {N_MIN}</div>
       ) : (
         <div className="pais-n">
           <span data-cuenta={p.n}>{fmt(p.n)}</span>
@@ -67,7 +68,7 @@ function Pais({ p }) {
 // ---------- Curva acumulada ----------
 function Curva({ serie, tip }) {
   const [hover, setHover] = useState(null);
-  if (!serie.length) return <p className="vacio">Aparecerá cuando haya al menos 5 respuestas.</p>;
+  if (!serie.length) return <p className="vacio">Aparecerá cuando haya al menos {N_MIN} respuestas.</p>;
   const W = 640, H = 230, L = 34, R = 14, T = 14, B = 28;
   const max = Math.max(5, ...serie.map((s) => s.acum));
   const top = Math.ceil((max * 1.15) / 10) * 10;
@@ -125,7 +126,7 @@ function Barras({ titulo, sub, dist, base: refDist, tip }) {
       <Tarjeta>
         <h3>{titulo}</h3>
         {sub && <p className="sub">{sub}</p>}
-        <p className="vacio">Ninguna opción llega aún a 5 respuestas; aparecerá a medida que lleguen más.</p>
+        <p className="vacio">{N_MIN > 1 ? `Ninguna opción llega aún a ${N_MIN} respuestas; aparecerá a medida que lleguen más.` : "Aún no hay respuestas para esta pregunta."}</p>
       </Tarjeta>
     );
   const refTot = refDist ? refDist.reduce((a, c) => a + c.n, 0) : 0;
@@ -279,6 +280,7 @@ export default function Tablero() {
     return () => ctx.revert();
   }, [listo]);
 
+  if (d && d.nMin) N_MIN = d.nMin;
   const hora = d ? new Date(d.actualizado).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }) : null;
   const P = d?.perfil;
   const pista = (
@@ -355,7 +357,7 @@ export default function Tablero() {
                   <div className="kpis">
                     <div className="kpi"><div className="v"><span data-cuenta={d.base.poblacion}>{fmt(d.base.poblacion)}</span></div><div className="l">empresas en la base</div></div>
                     <div className="kpi"><div className="v"><span data-cuenta={d.base.contactables}>{fmt(d.base.contactables)}</span></div><div className="l">con correo válido</div></div>
-                    <div className="kpi"><div className={"v" + (d.base.respondieron === null ? " txt" : "")}>{d.base.respondieron === null ? "menos de 5" : fmt(d.base.respondieron)}</div><div className="l">de la base ya respondieron</div></div>
+                    <div className="kpi"><div className={"v" + (d.base.respondieron === null ? " txt" : "")}>{d.base.respondieron === null ? `menos de ${N_MIN}` : fmt(d.base.respondieron)}</div><div className="l">de la base ya respondieron</div></div>
                     <div className="kpi"><div className="v">{d.base.tasa === null ? "–" : d.base.tasa + " %"}</div><div className="l">tasa de respuesta de la base</div></div>
                   </div>
                   <p className="nota">{d.base.fueraDeBase === null
@@ -382,9 +384,9 @@ export default function Tablero() {
             </section>
 
             <p className="aviso">
-              Los datos se actualizan solos cada minuto desde las respuestas del formulario. Por protección de datos,
-              ningún grupo de menos de 5 respuestas se muestra por separado: se agrupa en «Otras categorías» o aparece
-              como «menos de 5». El tamaño y el sector usan el registro oficial de la empresa cuando está disponible y,
+              Los datos se actualizan solos cada minuto desde las respuestas del formulario.
+              {N_MIN > 1 ? ` Por protección de datos, ningún grupo de menos de ${N_MIN} respuestas se muestra por separado: se agrupa en «Otras agrupadas» o aparece como «menos de ${N_MIN}».` : " Las cifras son conteos de empresas; no se muestran nombres ni datos de contacto."}
+              {" "}El tamaño y el sector usan el registro oficial de la empresa cuando está disponible y,
               si no, lo que declaró la empresa.
             </p>
           </>
