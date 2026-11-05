@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { createClient } from "@supabase/supabase-js";
 import { GlowCard } from "@/components/ui/spotlight-card";
+import { FondoShader } from "@/components/ui/fondo-shader";
 
 gsap.registerPlugin(ScrollTrigger);
 const useIsoLayout = typeof window !== "undefined" ? useLayoutEffect : useEffect;
@@ -263,8 +264,8 @@ export default function Tablero() {
       });
       gsap.to(".cinta", { x: (i) => (i ? 60 : -60), ease: "none", scrollTrigger: { trigger: ".cinta", start: "top bottom", end: "bottom top", scrub: true } });
 
-      // Parallax suave de la aurora del hero
-      gsap.to(".hero .aurora", { yPercent: 30, ease: "none", scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true } });
+      // Parallax suave del fondo del hero
+      gsap.to(".hero .fondo-shader", { yPercent: 30, ease: "none", scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true } });
 
       // Telón: al terminar el contenido se descubre el footer con la palabra gigante
       gsap.fromTo(".gigante", { yPercent: 70, scale: 0.85, opacity: 0.2 }, {
@@ -302,7 +303,7 @@ export default function Tablero() {
 
         {/* HERO */}
         <section className="hero">
-          <div className="aurora"><i /><i /><i /></div>
+          <FondoShader variante="inicio" />
           <div className="cuadricula" />
           <div className="hero-in">
             <div className="lema">{LEMA}</div>
@@ -395,7 +396,7 @@ export default function Tablero() {
 
       {/* FOOTER (telón) */}
       <footer className="footer">
-        <div className="aurora"><i /><i /><i /></div>
+        <FondoShader variante="final" />
         <div className="cuadricula" />
         <div className="footer-in">
           <div>
