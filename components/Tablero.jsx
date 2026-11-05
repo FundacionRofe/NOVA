@@ -5,6 +5,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { createClient } from "@supabase/supabase-js";
 import { GlowCard } from "@/components/ui/spotlight-card";
 import { FondoShader } from "@/components/ui/fondo-shader";
+import { KineticGrid } from "@/components/ui/kinetic-grid";
 
 gsap.registerPlugin(ScrollTrigger);
 const useIsoLayout = typeof window !== "undefined" ? useLayoutEffect : useEffect;
@@ -328,7 +329,8 @@ export default function Tablero() {
         </section>
 
         {d && (
-          <>
+          <div className="zona-grid">
+            <KineticGrid />
             {/* PAÍSES */}
             <section className="seccion">
               <h2 className="sec-titulo display">Avance por país</h2>
@@ -390,7 +392,7 @@ export default function Tablero() {
               {" "}El tamaño y el sector usan el registro oficial de la empresa cuando está disponible y,
               si no, lo que declaró la empresa.
             </p>
-          </>
+            </div>
         )}
       </div>
 
