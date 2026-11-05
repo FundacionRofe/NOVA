@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { createClient } from "@supabase/supabase-js";
+import { GlowCard } from "@/components/ui/spotlight-card";
 
 gsap.registerPlugin(ScrollTrigger);
 const useIsoLayout = typeof window !== "undefined" ? useLayoutEffect : useEffect;
@@ -25,12 +27,23 @@ function useTip() {
   return { ref, show, hide };
 }
 
+// ---------- Tarjeta con brillo que sigue al puntero (GlowCard, colores de marca) ----------
+function Tarjeta({ children }) {
+  return (
+    <div className="revelar" data-revelar>
+      <GlowCard glowColor="nova" customSize className="tarjeta-glow">
+        <div className="tarjeta">{children}</div>
+      </GlowCard>
+    </div>
+  );
+}
+
 // ---------- Tarjeta de país ----------
 function Pais({ p }) {
   const supr = p.n === null;
   const w = supr ? 0 : Math.min(100, (p.n / p.meta) * 100);
   return (
-    <div className="tarjeta" data-revelar>
+    <Tarjeta>
       <h3>{p.pais}</h3>
       <p className="sub">Meta: {p.meta} empresas</p>
       {supr ? (
@@ -47,7 +60,7 @@ function Pais({ p }) {
         <span>{supr ? "" : p.n >= p.meta ? "Meta cumplida ✓" : `Faltan ${fmt(p.meta - p.n)}`}</span>
       </div>
       {p.n === 0 && <p className="nota">Aún sin respuestas.</p>}
-    </div>
+    </Tarjeta>
   );
 }
 
@@ -109,11 +122,11 @@ function Barras({ titulo, sub, dist, base: refDist, tip }) {
   const vacio = dist.suprimido || !dist.categorias.length || dist.categorias.every((c) => c.k === "Otras categorías");
   if (vacio)
     return (
-      <div className="tarjeta" data-revelar>
+      <Tarjeta>
         <h3>{titulo}</h3>
         {sub && <p className="sub">{sub}</p>}
         <p className="vacio">Ninguna opción llega aún a 5 respuestas; aparecerá a medida que lleguen más.</p>
-      </div>
+      </Tarjeta>
     );
   const refTot = refDist ? refDist.reduce((a, c) => a + c.n, 0) : 0;
   const visibles = new Set(dist.categorias.map((c) => c.k));
@@ -124,7 +137,7 @@ function Barras({ titulo, sub, dist, base: refDist, tip }) {
     return pct(r ? r.n : 0, refTot);
   };
   return (
-    <div className="tarjeta" data-revelar>
+    <Tarjeta>
       <h3>{titulo}</h3>
       {sub && <p className="sub">{sub}</p>}
       {refDist && (
@@ -138,7 +151,7 @@ function Barras({ titulo, sub, dist, base: refDist, tip }) {
           const p = pct(c.n, dist.total), rp = refPct(c.k);
           const html = `<b>${c.k}</b><br>${c.n} respuestas · ${p} %` + (rp !== null ? `<br>Base CCB: ${rp} %` : "");
           return [
-            <div className="k" key={c.k + "k"} title={c.k}>{c.k === "Otras categorías" ? "Otras" : c.k}</div>,
+            <div className="k" key={c.k + "k"} title={c.k}>{c.k === "Otras categorías" ? "Otras agrupadas" : c.k}</div>,
             <div className="t" key={c.k + "t"} onMouseMove={(e) => tip.show(e, html)} onMouseLeave={tip.hide}>
               <i data-crece style={{ "--w": p + "%" }} />
               {rp !== null && <b data-crece style={{ "--w": rp + "%" }} />}
@@ -147,7 +160,7 @@ function Barras({ titulo, sub, dist, base: refDist, tip }) {
           ];
         })}
       </div>
-    </div>
+    </Tarjeta>
   );
 }
 
@@ -181,8 +194,28 @@ export default function Tablero() {
       }
     };
     cargar();
-    const id = setInterval(cargar, 60000);
-    return () => { vivo = false; clearInterval(id); };
+
+    // Tiempo real con Supabase: cada cambio de nova_tablero llega a todas las páginas abiertas.
+    // Cada minuto la página pide al servidor que sincronice si los datos tienen más de 45 s
+    // (el servidor decide; con muchas páginas abiertas solo hay una sincronización por minuto).
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL, anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    let canal = null, sb = null;
+    if (url && anon) {
+      sb = createClient(url, anon);
+      canal = sb
+        .channel("nova-tablero")
+        .on("postgres_changes", { event: "*", schema: "public", table: "nova_tablero" }, (p) => {
+          if (vivo && p.new && p.new.datos) { setD(p.new.datos); setError(false); }
+        })
+        .subscribe();
+    }
+    const latido = async () => {
+      if (canal) {
+        try { await fetch("/api/refrescar", { method: "POST" }); } catch { /* el próximo latido reintenta */ }
+      } else cargar();
+    };
+    const id = setInterval(latido, 60000);
+    return () => { vivo = false; clearInterval(id); if (canal) sb.removeChannel(canal); };
   }, []);
 
   // Animaciones: una sola vez, cuando llegan los primeros datos
@@ -311,12 +344,12 @@ export default function Tablero() {
               <h2 className="sec-titulo display">Ritmo y cobertura</h2>
               <p className="sec-sub">Cómo crecen las respuestas día a día y cuánto de la base convocada ha contestado.</p>
               <div className="rejilla r-ritmo">
-                <div className="tarjeta" data-revelar>
+                <Tarjeta>
                   <h3>Respuestas acumuladas</h3>
                   <p className="sub">Colombia y Ecuador, por día</p>
                   <Curva serie={d.serie} tip={tip} />
-                </div>
-                <div className="tarjeta" data-revelar>
+                </Tarjeta>
+                <Tarjeta>
                   <h3>Base de empresas convocadas</h3>
                   <p className="sub">Registro de la Cámara de Comercio de Bogotá</p>
                   <div className="kpis">
@@ -328,7 +361,7 @@ export default function Tablero() {
                   <p className="nota">{d.base.fueraDeBase === null
                     ? "La mayoría de respuestas llegan por otros canales, fuera de esta base."
                     : `${fmt(d.base.fueraDeBase)} respuestas llegaron por otros canales, fuera de esta base.`}</p>
-                </div>
+                </Tarjeta>
               </div>
             </section>
 

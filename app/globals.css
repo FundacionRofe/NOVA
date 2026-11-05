@@ -1,3 +1,4 @@
+@import "tailwindcss";
 /* Paleta del manual de marca NOVA (NOVA_Book_LOGO.pdf) */
 :root {
   color-scheme: dark;
@@ -96,7 +97,9 @@ body {
 .r-ritmo { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
 .r-perfil { grid-template-columns: repeat(auto-fit, minmax(min(330px, 100%), 1fr)); }
 @media (max-width: 860px) { .r-paises, .r-ritmo { grid-template-columns: minmax(0, 1fr); } }
-.tarjeta { min-width: 0; position: relative; background: var(--glass); border: 1px solid var(--glass-line); border-radius: 22px; padding: 26px; backdrop-filter: blur(14px); }
+.revelar { min-width: 0; height: 100%; }
+.tarjeta-glow { height: 100%; min-width: 0; --backdrop: rgba(255, 255, 255, 0.045); }
+.tarjeta { min-width: 0; position: relative; padding: 10px; }
 .tarjeta h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
 .tarjeta .sub { margin: 0 0 18px; font-size: 13px; color: var(--ink-2); }
 .pais-n { font-family: var(--f-display); font-weight: 900; font-size: clamp(54px, 8vw, 88px); line-height: 1; font-variant-numeric: tabular-nums; }
