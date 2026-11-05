@@ -6,6 +6,11 @@ import React, { useEffect, useRef, ReactNode } from 'react';
 //     cuando el dedo empieza sobre una tarjeta (el tablero está lleno de tarjetas).
 //  3. baseStyles tipado: el original asignaba width/height a un objeto literal sin esas
 //     propiedades y no compila con TypeScript estricto.
+//  4. Brillo por cercanía: el original usaba coordenadas de la ventana + background-attachment
+//     fixed, que se rompe si algún contenedor tiene transform (las animaciones GSAP lo dejan) y
+//     hacía que TODAS las tarjetas se iluminaran a la vez en el mismo punto relativo. Ahora --x/--y
+//     son relativas a cada tarjeta (attachment scroll): solo se ilumina el borde de las tarjetas que
+//     estén a menos del radio del brillo, por el lado más cercano al mouse. Se recalcula al hacer scroll.
 
 interface GlowCardProps {
   children: ReactNode;
@@ -45,19 +50,33 @@ const GlowCard: React.FC<GlowCardProps> = ({
   const innerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const syncPointer = (e: PointerEvent) => {
-      const { clientX: x, clientY: y } = e;
-
-      if (cardRef.current) {
-        cardRef.current.style.setProperty('--x', x.toFixed(2));
-        cardRef.current.style.setProperty('--xp', (x / window.innerWidth).toFixed(2));
-        cardRef.current.style.setProperty('--y', y.toFixed(2));
-        cardRef.current.style.setProperty('--yp', (y / window.innerHeight).toFixed(2));
-      }
+    // NOVA: coordenadas relativas a la tarjeta (ver nota 4)
+    let px = -9999, py = -9999;
+    const aplicar = () => {
+      const el = cardRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--x', (px - r.left).toFixed(2));
+      el.style.setProperty('--y', (py - r.top).toFixed(2));
+      el.style.setProperty('--xp', (px / window.innerWidth).toFixed(2));
+      el.style.setProperty('--yp', (py / window.innerHeight).toFixed(2));
     };
+    const syncPointer = (e: PointerEvent) => {
+      px = e.clientX;
+      py = e.clientY;
+      aplicar();
+    };
+    const fuera = () => { px = py = -9999; aplicar(); };
 
     document.addEventListener('pointermove', syncPointer);
-    return () => document.removeEventListener('pointermove', syncPointer);
+    document.addEventListener('pointerleave', fuera);
+    window.addEventListener('scroll', aplicar, { passive: true });
+    aplicar();
+    return () => {
+      document.removeEventListener('pointermove', syncPointer);
+      document.removeEventListener('pointerleave', fuera);
+      window.removeEventListener('scroll', aplicar);
+    };
   }, []);
 
   const { base, spread } = glowColorMap[glowColor];
@@ -93,7 +112,7 @@ const GlowCard: React.FC<GlowCardProps> = ({
       backgroundColor: 'var(--backdrop, transparent)',
       backgroundSize: 'calc(100% + (2 * var(--border-size))) calc(100% + (2 * var(--border-size)))',
       backgroundPosition: '50% 50%',
-      backgroundAttachment: 'fixed',
+      backgroundAttachment: 'scroll', // NOVA: era 'fixed' (ver nota 4)
       border: 'var(--border-size) solid var(--backup-border)',
       position: 'relative' as const,
       touchAction: 'pan-y' as const, // NOVA: era 'none' (bloqueaba el scroll táctil)
@@ -119,7 +138,7 @@ const GlowCard: React.FC<GlowCardProps> = ({
       inset: calc(var(--border-size) * -1);
       border: var(--border-size) solid transparent;
       border-radius: calc(var(--radius) * 1px);
-      background-attachment: fixed;
+      background-attachment: scroll;
       background-size: calc(100% + (2 * var(--border-size))) calc(100% + (2 * var(--border-size)));
       background-repeat: no-repeat;
       background-position: 50% 50%;
