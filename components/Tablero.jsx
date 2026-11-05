@@ -48,7 +48,7 @@ function Pais({ p }) {
   return (
     <Tarjeta>
       <h3>{p.pais}</h3>
-      <p className="sub">Meta: {p.meta} empresas</p>
+      <p className="sub">Meta: {p.meta} empresas{p.convocadas ? ` · ${fmt(p.convocadas)} en la base convocada` : ""}</p>
       {supr ? (
         <div className="pais-n texto display">menos de {N_MIN}</div>
       ) : (
@@ -356,13 +356,23 @@ export default function Tablero() {
                 </Tarjeta>
                 <Tarjeta>
                   <h3>Base de empresas convocadas</h3>
-                  <p className="sub">Registro de la Cámara de Comercio de Bogotá</p>
+                  <p className="sub">Cámara de Comercio de Bogotá + aliados de los socios NOVA</p>
                   <div className="kpis">
                     <div className="kpi"><div className="v"><span data-cuenta={d.base.poblacion}>{fmt(d.base.poblacion)}</span></div><div className="l">empresas en la base</div></div>
                     <div className="kpi"><div className="v"><span data-cuenta={d.base.contactables}>{fmt(d.base.contactables)}</span></div><div className="l">con correo válido</div></div>
                     <div className="kpi"><div className={"v" + (d.base.respondieron === null ? " txt" : "")}>{d.base.respondieron === null ? `menos de ${N_MIN}` : fmt(d.base.respondieron)}</div><div className="l">de la base ya respondieron</div></div>
                     <div className="kpi"><div className="v">{d.base.tasa === null ? "–" : d.base.tasa + " %"}</div><div className="l">tasa de respuesta de la base</div></div>
                   </div>
+                  {d.base.fuentes && d.base.fuentes.length > 0 && (
+                    <div className="fuentes">
+                      {d.base.fuentes.map((f) => (
+                        <div className="fuente" key={f.k}>
+                          <span className="fk">{f.k}</span>
+                          <span className="fv">{fmt(f.n)} empresas · {f.respondieron === null ? `menos de ${N_MIN}` : fmt(f.respondieron)} respondieron</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <p className="nota">{d.base.fueraDeBase === null
                     ? "La mayoría de respuestas llegan por otros canales, fuera de esta base."
                     : `${fmt(d.base.fueraDeBase)} respuestas llegaron por otros canales, fuera de esta base.`}</p>
