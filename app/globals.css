@@ -160,3 +160,26 @@ svg.curva text { fill: var(--ink-3); font-size: 11px; font-family: var(--f-body)
 @media (prefers-reduced-motion: reduce) {
   .aurora i, .punto { animation: none; }
 }
+
+/* Ubicación desplegable */
+.ubic { display: grid; gap: 4px; }
+.ubic-fila { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: minmax(150px, 48%) minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 7px 8px; margin: 0 -8px; border-radius: 10px; font-size: 13px; cursor: pointer; transition: background .15s; }
+.ubic-fila:hover:not(:disabled), .ubic-fila:focus-visible { background: rgba(255, 255, 255, .06); }
+.ubic-fila:focus-visible { outline: 2px solid var(--yellow); outline-offset: 1px; }
+.ubic-fila:disabled { cursor: default; }
+.ubic-fila .k { color: var(--ink); display: flex; align-items: center; gap: 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ubic-fila .t, .ubic-l .t { position: relative; height: 13px; }
+.ubic-fila .t i { position: absolute; left: 0; top: 0; height: 13px; width: var(--w); background: var(--s-resp); border-radius: 0 4px 4px 0; transform-origin: left; }
+.ubic-fila .v, .ubic-l .v { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.ubic-fila .v span { color: var(--ink-3); }
+.chev { display: inline-block; color: var(--yellow); font-weight: 700; transition: transform .25s; }
+.ubic-g.abierto .chev { transform: rotate(90deg); }
+.ubic-det { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .35s ease; }
+.ubic-g.abierto .ubic-det { grid-template-rows: 1fr; }
+.ubic-det > div { overflow: hidden; display: grid; gap: 6px; padding-left: 18px; border-left: 2px solid rgba(182, 87, 157, .5); margin: 2px 0 8px 4px; }
+.ubic-g.abierto .ubic-det > div { padding-top: 6px; padding-bottom: 4px; }
+.ubic-l { display: grid; grid-template-columns: minmax(110px, 46%) minmax(0, 1fr) auto; align-items: center; gap: 10px; font-size: 12.5px; }
+.ubic-l .k { color: var(--ink-2); display: flex; flex-direction: column; min-width: 0; }
+.ubic-l .k em { font-style: normal; font-size: 11.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ubic-l .t i { position: absolute; left: 0; top: 2px; height: 9px; width: var(--w); background: var(--orchid); border-radius: 0 3px 3px 0; }
+@media (prefers-reduced-motion: reduce) { .ubic-det, .chev { transition: none; } }

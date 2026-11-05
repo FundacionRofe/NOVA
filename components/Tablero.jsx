@@ -167,6 +167,66 @@ function Barras({ titulo, sub, dist, base: refDist, tip }) {
   );
 }
 
+// ---------- Ubicación desplegable: grupo → departamento/provincia/país → ciudades ----------
+function Ubicacion({ dist, tip }) {
+  const [abierto, setAbierto] = useState(null);
+  if (dist.suprimido || !dist.categorias.length)
+    return (
+      <Tarjeta>
+        <h3>Ubicación de las empresas</h3>
+        <p className="vacio">Aún no hay respuestas para esta pregunta.</p>
+      </Tarjeta>
+    );
+  return (
+    <Tarjeta>
+      <h3>Ubicación de las empresas</h3>
+      <p className="sub">Sede principal declarada. Toca una opción para ver el departamento, la provincia o el país.</p>
+      <div className="ubic">
+        {dist.categorias.map((c) => {
+          const p = pct(c.n, dist.total);
+          const abre = abierto === c.k;
+          const puede = c.detalle && c.detalle.length > 0;
+          return (
+            <div className={"ubic-g" + (abre ? " abierto" : "")} key={c.k}>
+              <button
+                type="button"
+                className="ubic-fila"
+                aria-expanded={abre}
+                disabled={!puede}
+                onClick={() => setAbierto(abre ? null : c.k)}
+                onMouseMove={(e) => tip.show(e, `<b>${c.k}</b><br>${c.n} respuestas · ${p} %`)}
+                onMouseLeave={tip.hide}
+              >
+                <span className="k">{puede && <span className="chev" aria-hidden="true">›</span>}{c.k}</span>
+                <span className="t"><i data-crece style={{ "--w": p + "%" }} /></span>
+                <span className="v">{p} % <span>({c.n})</span></span>
+              </button>
+              <div className="ubic-det" aria-hidden={!abre}>
+                <div>
+                  {(c.detalle || []).map((d) => {
+                    const pd = pct(d.n, c.n);
+                    const ciudades = (d.ciudades || []).map((x) => `${x.k}${x.n > 1 ? ` (${x.n})` : ""}`).join(", ");
+                    return (
+                      <div className="ubic-l" key={d.k}>
+                        <span className="k" title={d.k}>
+                          {d.k}
+                          {ciudades && <em>{ciudades}</em>}
+                        </span>
+                        <span className="t"><i style={{ "--w": pd + "%" }} /></span>
+                        <span className="v">{d.n}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Tarjeta>
+  );
+}
+
 // ---------- Botón magnético ----------
 function Iman({ children, onClick }) {
   const ref = useRef(null);
@@ -388,7 +448,7 @@ export default function Tablero() {
                 <Barras tip={tip} titulo="Tamaño de la empresa" sub="Registro oficial o lo declarado, frente a la base" dist={P.tamano} base={d.base.distTamano} />
                 <Barras tip={tip} titulo="Gran sector" sub="Comparado con la base de empresas convocadas" dist={P.sector3} base={d.base.distSector} />
                 <Barras tip={tip} titulo="Sector económico" sub="Como lo declaró la empresa" dist={P.sector} />
-                <Barras tip={tip} titulo="Ubicación en Colombia" sub="Sede principal declarada" dist={P.region} />
+                {P.ubicacion ? <Ubicacion dist={P.ubicacion} tip={tip} /> : <Barras tip={tip} titulo="Ubicación en Colombia" sub="Sede principal declarada" dist={P.region} />}
                 <Barras tip={tip} titulo="Cargo de quien responde" dist={P.cargo} />
                 <Barras tip={tip} titulo="Quién responde" dist={P.responde} />
                 <Barras tip={tip} titulo="Contrató en cargos de entrada" sub="Sin exigir título universitario, últimos 24 meses" dist={P.contrato} />
