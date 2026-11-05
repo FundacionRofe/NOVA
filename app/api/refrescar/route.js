@@ -12,6 +12,8 @@ export async function POST(req) {
   try {
     const clave = process.env.NOVA_SYNC_SECRET;
     const forzar = !!clave && req.headers.get("x-nova-clave") === clave;
+    const origen = /Google-Apps-Script/i.test(req.headers.get("user-agent") || "") ? "apps-script" : "navegador";
+    console.log(`refrescar origen=${origen} forzado=${forzar}${req.headers.get("x-nova-clave") && !forzar ? " clave=INCORRECTA" : ""}`);
     if (!forzar) {
       const t = await leerTablero();
       if (t && Date.now() - new Date(t.actualizado).getTime() < VIGENCIA_MS) {
