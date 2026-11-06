@@ -178,7 +178,7 @@ function Torta({ titulo, sub, dist, colores = {}, tip }) {
       </Tarjeta>
     );
   const PALETA = ["var(--yellow)", "var(--orchid)", "var(--aqua)", "#7f8cff", "rgba(246,244,255,.45)"];
-  const R = 80, C = 90;
+  const R = 80, C = 90, INCL = 0.62, PROF = 16; // inclinación y grosor del canto 3D
   let ang = -Math.PI / 2;
   const trozos = dist.categorias.map((c, i) => {
     const frac = c.n / dist.total;
@@ -195,12 +195,27 @@ function Torta({ titulo, sub, dist, colores = {}, tip }) {
       <h3>{titulo}</h3>
       {sub && <p className="sub">{sub}</p>}
       <div className="torta">
-        <svg viewBox="0 0 180 180" role="img" aria-label={titulo + ": " + trozos.map((t) => `${t.k} ${t.p} %`).join(", ")}>
-          <g className="torta-giro">
+        {/* 3D: el círculo se inclina (escala vertical) y se apilan copias oscuras debajo como canto */}
+        <svg viewBox="0 0 180 136" role="img" aria-label={titulo + ": " + trozos.map((t) => `${t.k} ${t.p} %`).join(", ")}>
+          <defs>
+            <radialGradient id={"brillo-" + titulo.length} cx="35%" cy="25%" r="75%">
+              <stop offset="0" stopColor="#fff" stopOpacity=".38" />
+              <stop offset=".55" stopColor="#fff" stopOpacity=".06" />
+              <stop offset="1" stopColor="#000" stopOpacity=".18" />
+            </radialGradient>
+          </defs>
+          <ellipse cx="90" cy="118" rx="84" ry="14" className="torta-sombra" />
+          {Array.from({ length: PROF }, (_, i) => PROF - i).map((dy) => (
+            <g key={dy} className="torta-canto" transform={`translate(0 ${2 + dy}) scale(1 ${INCL})`}>
+              {trozos.map((t) => <path key={t.k} d={t.d} fill={t.color} />)}
+            </g>
+          ))}
+          <g className="torta-cara" transform={`translate(0 2) scale(1 ${INCL})`}>
             {trozos.map((t) => (
               <path key={t.k} d={t.d} fill={t.color}
                 onMouseMove={(e) => tip.show(e, `<b>${t.k}</b><br>${t.n} respuestas · ${t.p} %`)} onMouseLeave={tip.hide} />
             ))}
+            <circle cx={C} cy={C} r={R} fill={`url(#brillo-${titulo.length})`} pointerEvents="none" />
           </g>
         </svg>
         <ul className="torta-ley">
@@ -389,8 +404,8 @@ export default function Tablero() {
         scrollTrigger: { trigger: ".main", start: "bottom bottom", end: "bottom top", scrub: 0.8 },
       });
       // Las tortas se dibujan girando al entrar en pantalla
-      gsap.utils.toArray(".torta-giro").forEach((g) => {
-        gsap.from(g, { rotate: -90, scale: 0.4, opacity: 0, transformOrigin: "50% 50%", duration: 1, ease: "power3.out",
+      gsap.utils.toArray(".torta svg").forEach((g) => {
+        gsap.from(g, { rotationX: 70, y: 30, scale: 0.6, opacity: 0, transformOrigin: "50% 80%", duration: 1.1, ease: "power3.out",
           scrollTrigger: { trigger: g, start: "top 90%" } });
       });
       gsap.from(".footer-in > *", {
