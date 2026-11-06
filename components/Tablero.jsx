@@ -167,6 +167,56 @@ function Barras({ titulo, sub, dist, base: refDist, tip }) {
   );
 }
 
+// ---------- Torta (pocas categorías: Sí/No, Mujer/Hombre) ----------
+function Torta({ titulo, sub, dist, colores = {}, tip }) {
+  if (dist.suprimido || !dist.categorias.length)
+    return (
+      <Tarjeta>
+        <h3>{titulo}</h3>
+        {sub && <p className="sub">{sub}</p>}
+        <p className="vacio">Aún no hay respuestas para esta pregunta.</p>
+      </Tarjeta>
+    );
+  const PALETA = ["var(--yellow)", "var(--orchid)", "var(--aqua)", "#7f8cff", "rgba(246,244,255,.45)"];
+  const R = 80, C = 90;
+  let ang = -Math.PI / 2;
+  const trozos = dist.categorias.map((c, i) => {
+    const frac = c.n / dist.total;
+    const a0 = ang, a1 = ang + frac * 2 * Math.PI;
+    ang = a1;
+    const p0 = [C + R * Math.cos(a0), C + R * Math.sin(a0)], p1 = [C + R * Math.cos(a1), C + R * Math.sin(a1)];
+    const d = frac >= 0.9999
+      ? `M ${C} ${C - R} A ${R} ${R} 0 1 1 ${C - 0.01} ${C - R} Z`
+      : `M ${C} ${C} L ${p0[0]} ${p0[1]} A ${R} ${R} 0 ${frac > 0.5 ? 1 : 0} 1 ${p1[0]} ${p1[1]} Z`;
+    return { ...c, d, p: pct(c.n, dist.total), color: colores[c.k] || PALETA[i % PALETA.length] };
+  });
+  return (
+    <Tarjeta>
+      <h3>{titulo}</h3>
+      {sub && <p className="sub">{sub}</p>}
+      <div className="torta">
+        <svg viewBox="0 0 180 180" role="img" aria-label={titulo + ": " + trozos.map((t) => `${t.k} ${t.p} %`).join(", ")}>
+          <g className="torta-giro">
+            {trozos.map((t) => (
+              <path key={t.k} d={t.d} fill={t.color}
+                onMouseMove={(e) => tip.show(e, `<b>${t.k}</b><br>${t.n} respuestas · ${t.p} %`)} onMouseLeave={tip.hide} />
+            ))}
+          </g>
+        </svg>
+        <ul className="torta-ley">
+          {trozos.map((t) => (
+            <li key={t.k}>
+              <i style={{ background: t.color }} />
+              <span className="k">{t.k}</span>
+              <span className="v">{t.p} % <span>({t.n})</span></span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Tarjeta>
+  );
+}
+
 // ---------- Ubicación desplegable: grupo → departamento/provincia/país → ciudades ----------
 function Ubicacion({ dist, tip }) {
   const [abierto, setAbierto] = useState(null);
@@ -338,6 +388,11 @@ export default function Tablero() {
         rotate: 0, scale: 1, ease: "none",
         scrollTrigger: { trigger: ".main", start: "bottom bottom", end: "bottom top", scrub: 0.8 },
       });
+      // Las tortas se dibujan girando al entrar en pantalla
+      gsap.utils.toArray(".torta-giro").forEach((g) => {
+        gsap.from(g, { rotate: -90, scale: 0.4, opacity: 0, transformOrigin: "50% 50%", duration: 1, ease: "power3.out",
+          scrollTrigger: { trigger: g, start: "top 90%" } });
+      });
       gsap.from(".footer-in > *", {
         y: 60, opacity: 0, stagger: 0.1, ease: "none",
         scrollTrigger: { trigger: ".main", start: "bottom 90%", end: "bottom 30%", scrub: 0.6 },
@@ -374,7 +429,7 @@ export default function Tablero() {
           <div className="hero-in">
             <div className="lema">{LEMA}</div>
             <h1 className="titulo display">
-              <span className="linea-mascara"><span>Encuesta a</span></span>
+              <span className="linea-mascara"><span>Cuestionario a</span></span>
               <span className="linea-mascara"><span>empresas, <em>en vivo</em></span></span>
             </h1>
             <div className="hero-cifra">
@@ -455,8 +510,8 @@ export default function Tablero() {
                 <Barras tip={tip} titulo="Sector económico" sub="Como lo declaró la empresa" dist={P.sector} />
                 {P.ubicacion ? <Ubicacion dist={P.ubicacion} tip={tip} /> : <Barras tip={tip} titulo="Ubicación en Colombia" sub="Sede principal declarada" dist={P.region} />}
                 <Barras tip={tip} titulo="Cargo de quien responde" dist={P.cargo} />
-                <Barras tip={tip} titulo="Quién responde" dist={P.responde} />
-                <Barras tip={tip} titulo="Contrató en cargos de entrada" sub="Sin exigir título universitario, últimos 24 meses" dist={P.contrato} />
+                <Torta tip={tip} titulo="Quién responde" dist={P.responde} colores={{ Mujer: "var(--orchid)", Hombre: "var(--aqua)" }} />
+                <Torta tip={tip} titulo="Contrató en cargos de entrada" sub="Sin exigir título universitario, últimos 24 meses" dist={P.contrato} colores={{ "Sí": "var(--yellow)", No: "var(--aqua)" }} />
                 <Barras tip={tip} titulo="Mujeres en cargos directivos" sub="Porcentaje aproximado declarado" dist={P.mujeresDir} />
               </div>
             </section>
