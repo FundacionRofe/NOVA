@@ -333,6 +333,11 @@ export default function Tablero() {
         yPercent: 0, scale: 1, opacity: 1, ease: "none",
         scrollTrigger: { trigger: ".main", start: "bottom bottom", end: "bottom top", scrub: 0.6 },
       });
+      // La flor del logo (la «O») gira mientras se descubre el telón
+      gsap.fromTo(".gigante-flor", { rotate: -150, scale: 0.6 }, {
+        rotate: 0, scale: 1, ease: "none",
+        scrollTrigger: { trigger: ".main", start: "bottom bottom", end: "bottom top", scrub: 0.8 },
+      });
       gsap.from(".footer-in > *", {
         y: 60, opacity: 0, stagger: 0.1, ease: "none",
         scrollTrigger: { trigger: ".main", start: "bottom 90%", end: "bottom 30%", scrub: 0.6 },
@@ -355,7 +360,7 @@ export default function Tablero() {
     <div ref={raiz}>
       <div className="main">
         <header className="topbar">
-          <div className="marca">NOVA<span>.</span></div>
+          <img className="marca-logo" src="/nova-logo-blanco.png" alt="NOVA" width="1168" height="295" />
           <div className="vivo">
             <span className={"punto" + (error ? " err" : "")} />
             {error ? "Reconectando…" : hora ? `En vivo · ${hora}` : "Conectando…"}
@@ -477,7 +482,13 @@ export default function Tablero() {
           </div>
           <Iman onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>↑ Volver al inicio</Iman>
         </div>
-        <div className="gigante-wrap"><span className="gigante">NOVA</span></div>
+        <div className="gigante-wrap">
+          <span className="gigante" role="img" aria-label="NOVA">
+            <span aria-hidden="true">N</span>
+            <img className="gigante-flor" src="/nova-flor.png" alt="" aria-hidden="true" />
+            <span aria-hidden="true">VA</span>
+          </span>
+        </div>
         <div className="ue">
           Financiado por la Unión Europea. Las opiniones y puntos de vista expresados solo comprometen a su(s) autor(es) y no
           reflejan necesariamente los de la Unión Europea o los de la Agencia Ejecutiva Europea de Educación y Cultura (EACEA).
