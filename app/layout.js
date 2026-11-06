@@ -6,7 +6,7 @@ const display = Unbounded({ subsets: ["latin"], weight: ["600", "800", "900"], v
 const body = Poppins({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--f-body" });
 
 export const metadata = {
-  title: "NOVA · Avance de la encuesta",
+  title: "Cuestionario Empresarial NOVA",
   description: "Avance en tiempo real de la encuesta NOVA a empresas de Colombia y Ecuador.",
   robots: { index: false, follow: false },
 };
