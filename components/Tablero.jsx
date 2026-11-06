@@ -398,11 +398,6 @@ export default function Tablero() {
         yPercent: 0, scale: 1, opacity: 1, ease: "none",
         scrollTrigger: { trigger: ".main", start: "bottom bottom", end: "bottom top", scrub: 0.6 },
       });
-      // La flor del logo (la «O») gira mientras se descubre el telón
-      gsap.fromTo(".gigante-flor", { rotate: -150, scale: 0.6 }, {
-        rotate: 0, scale: 1, ease: "none",
-        scrollTrigger: { trigger: ".main", start: "bottom bottom", end: "bottom top", scrub: 0.8 },
-      });
       // Las tortas se dibujan girando al entrar en pantalla
       gsap.utils.toArray(".torta svg").forEach((g) => {
         gsap.from(g, { rotationX: 70, y: 30, scale: 0.6, opacity: 0, transformOrigin: "50% 80%", duration: 1.1, ease: "power3.out",
@@ -553,11 +548,7 @@ export default function Tablero() {
           <Iman onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>↑ Volver al inicio</Iman>
         </div>
         <div className="gigante-wrap">
-          <span className="gigante" role="img" aria-label="NOVA">
-            <span aria-hidden="true">N</span>
-            <img className="gigante-flor" src="/nova-flor.png" alt="" aria-hidden="true" />
-            <span aria-hidden="true">VA</span>
-          </span>
+          <img className="gigante gigante-logo" src="/nova-logo-blanco.png" alt="NOVA" width="1184" height="287" />
         </div>
         <div className="ue">
           Financiado por la Unión Europea. Las opiniones y puntos de vista expresados solo comprometen a su(s) autor(es) y no
